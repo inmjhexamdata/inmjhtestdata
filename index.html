@@ -260,9 +260,17 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase 配置
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ym-middle-school';
+const firebaseConfig = {
+  apiKey: "AIzaSyAb3zYeQw5l6L9JwnkRDIL9cWuah1TaMCw",
+  authDomain: "inmjhexamdata.firebaseapp.com",
+  projectId: "inmjhexamdata",
+  storageBucket: "inmjhexamdata.firebasestorage.app",
+  messagingSenderId: "652975438044",
+  appId: "1:652975438044:web:a806e5914980bcf0819c19",
+  measurementId: "G-95L6PJXQN9"
+};
+
+const appId = "ym-middle-school";
         
         let db, auth, cloudData = [], charts = {}, user = null;
         let lastAnalysis = { user: null, gradeEntries: [] };
