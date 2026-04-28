@@ -260,45 +260,55 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase 配置與初始化
+        // Firebase 配置
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'ym-middle-school';
         
         let db, auth, cloudData = [], charts = {}, user = null;
         let lastAnalysis = { user: null, gradeEntries: [] };
 
-        const app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
+        // 檢查 Config 是否存在，否則使用 Mock 數據模擬環境
+        if (Object.keys(firebaseConfig).length > 0) {
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
 
-        // 初始化驗證流程 (修正 Permission Denied 錯誤)
-        const initAuth = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
+            const initAuth = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("Auth Error:", error);
                 }
-            } catch (error) {
-                console.error("Auth Error:", error);
-            }
-        };
+            };
 
-        // 監聽登入狀態並啟動資料監聽
-        onAuthStateChanged(auth, (authUser) => {
-            if (authUser) {
-                user = authUser;
-                startListening();
-            }
-        });
-
-        initAuth();
+            onAuthStateChanged(auth, (authUser) => {
+                if (authUser) {
+                    user = authUser;
+                    startListening();
+                }
+            });
+            initAuth();
+        } else {
+            // 如果沒有 Firebase 環境，顯示模擬數據
+            document.getElementById('cloudStatus').innerHTML = '<span class="text-amber-500">●</span> 預覽模式 (Demo)';
+            cloudData = [{
+                id: "112學年度 第1次段考 (DEMO)",
+                entries: [
+                    { class: "305", seat: "01", name: "王小明", birthday: "0101", idLastFour: "1234", scores: [95, 88, 92, 85, 90], weightedAvg: 90.2 },
+                    { class: "305", seat: "02", name: "李小華", birthday: "0202", idLastFour: "5678", scores: [70, 75, 68, 80, 72], weightedAvg: 73.1 }
+                ]
+            }];
+            const sel = document.getElementById('examSelect');
+            sel.innerHTML = '<option value="112學年度 第1次段考 (DEMO)">112學年度 第1次段考 (DEMO)</option>';
+        }
 
         function startListening() {
             if (!user) return;
-            // 嚴格遵守路徑規範: /artifacts/{appId}/public/data/{collectionName}
             const dataCol = collection(db, 'artifacts', appId, 'public', 'data', 'exams');
-            
             onSnapshot(query(dataCol), (snap) => {
                 cloudData = snap.docs.map(d => d.data());
                 const sel = document.getElementById('examSelect');
@@ -332,7 +342,7 @@
                     document.getElementById('reportView').classList.remove('hidden-view');
                     document.getElementById('reportView').classList.add('active-view');
                 }, 300);
-            } else alert("驗證資訊有誤，請確認班級、座號、生日及身分證末四碼。");
+            } else alert("驗證資訊有誤，請確認班級、座號、生日及身分證末四碼。 (Demo 帳號: 305 / 01 / 0101 / 1234)");
         };
 
         window.backToSearch = () => {
@@ -346,7 +356,6 @@
 
         function renderReport(targetUser, exam) {
             const gradeYear = targetUser.class.charAt(0);
-            // 本地過濾與排序，避免複雜 Firestore 查詢索引問題
             const gradeEntries = exam.entries.filter(e => e.class.startsWith(gradeYear)).sort((a,b) => b.weightedAvg - a.weightedAvg);
             const classEntries = exam.entries.filter(e => e.class === targetUser.class).sort((a,b) => b.weightedAvg - a.weightedAvg);
             
@@ -486,7 +495,7 @@
         };
 
         window.saveData = async () => {
-            if (!user) return alert("系統尚未就緒，請稍後");
+            if (!db) return alert("預覽模式無法發布數據，請在 Firebase 環境下執行。");
             const btn = document.getElementById('saveBtn');
             const raw = document.getElementById('rawInput').value.trim();
             const title = document.getElementById('examTitleInput').value.trim();
