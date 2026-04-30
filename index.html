@@ -15,7 +15,8 @@
         .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); @apply rounded-3xl shadow-xl border border-white/50; }
         .loader-spin { border: 2px solid #e2e8f0; border-top: 2px solid var(--primary); border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .hidden-view { display: none; }
+        .hidden-view { display: none !important; }
+        .admin-box { transition: all 0.3s ease-in-out; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -28,7 +29,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-black text-slate-800">英明國中成績分析</h1>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Realtime Database Version</p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic">Connected to Singapore DB</p>
                 </div>
             </div>
             <div id="cloudStatus" class="glass-card px-4 py-2 flex items-center gap-2 text-[11px] font-black text-slate-500">
@@ -41,51 +42,71 @@
             <h2 class="text-2xl font-black text-center mb-8">成績單查詢</h2>
             <div class="space-y-5">
                 <div>
-                    <label class="block text-xs font-black text-slate-400 mb-1 tracking-widest">選擇考試</label>
+                    <label class="block text-xs font-black text-slate-400 mb-1 tracking-widest">選擇考試項目</label>
                     <select id="examSelect" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 font-bold outline-none focus:border-blue-600">
-                        <option>正在獲取考試列表...</option>
+                        <option>讀取資料中...</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="text" id="classNum" placeholder="班級 (305)" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-center font-black outline-none focus:border-blue-600">
-                    <input type="text" id="seatNum" placeholder="座號 (01)" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-center font-black outline-none focus:border-blue-600">
+                    <input type="text" id="classNum" placeholder="班級 (如 305)" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-center font-black outline-none focus:border-blue-600">
+                    <input type="text" id="seatNum" placeholder="座號 (如 01)" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-center font-black outline-none focus:border-blue-600">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="text" id="birthday" placeholder="生日 (0520)" maxlength="4" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-center font-black outline-none focus:border-blue-600">
+                    <input type="text" id="birthday" placeholder="生日 (如 0520)" maxlength="4" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-center font-black outline-none focus:border-blue-600">
                     <input type="password" id="idLastFour" placeholder="身分證末四碼" maxlength="4" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-center font-black outline-none focus:border-blue-600">
                 </div>
                 <button onclick="searchGrades()" class="w-full bg-blue-600 text-white font-black rounded-2xl py-5 shadow-lg hover:bg-blue-700 transition-all text-lg mt-4">
-                    生成分析報告
+                    查看分析報告
                 </button>
             </div>
         </div>
 
         <!-- 報告介面 -->
         <div id="reportView" class="hidden-view space-y-8">
-             <button onclick="location.reload()" class="font-black text-slate-400">← 返回查詢</button>
+             <button onclick="location.reload()" class="font-black text-slate-400 hover:text-blue-600 transition-colors">← 返回重新查詢</button>
              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="glass-card p-8 border-l-[12px] border-l-blue-600">
-                    <span class="text-2xl font-black" id="resName">--</span><br>
+                    <span class="text-2xl font-black text-slate-800" id="resName">--</span><br>
                     <span class="text-sm font-bold text-slate-400" id="resClass">--</span>
                 </div>
                 <div class="glass-card p-8 bg-slate-900 text-white text-center">
-                    <p class="text-[10px] text-slate-500 font-black">年級排名</p>
+                    <p class="text-[10px] text-slate-500 font-black mb-1 uppercase">年級排名</p>
                     <span id="resRank" class="text-5xl font-black italic">--</span>
                 </div>
                 <div class="glass-card p-8 bg-blue-600 text-white text-center">
-                    <p class="text-[10px] text-blue-200 font-black">五科平均</p>
+                    <p class="text-[10px] text-blue-200 font-black mb-1 uppercase">五科平均</p>
                     <span id="resAvg" class="text-5xl font-black">--</span>
                 </div>
              </div>
              <div class="glass-card p-8">
-                <h3 class="font-black text-slate-800 mb-6">學科能力雷達圖</h3>
+                <h3 class="font-black text-slate-800 mb-6 text-lg tracking-tight">學科雷達分佈圖</h3>
                 <div style="height: 350px;"><canvas id="radarChart"></canvas></div>
              </div>
         </div>
+
+        <!-- 管理員區塊 (修正顯示邏輯) -->
+        <div id="adminPanel" class="hidden-view max-w-2xl mx-auto mt-12 admin-box glass-card bg-slate-900 p-8 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-white font-black flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
+                    後台數據發布
+                </h3>
+                <button onclick="toggleAdmin()" class="text-slate-500 hover:text-white">✕</button>
+            </div>
+            <div class="space-y-4">
+                <input type="text" id="examTitleInput" placeholder="輸入考試名稱 (如: 113年一模)" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-4 text-white font-bold outline-none focus:border-blue-500">
+                <textarea id="rawInput" rows="6" placeholder="貼上 Excel 格式數據..." class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-4 text-white font-mono text-xs outline-none focus:border-blue-500"></textarea>
+                <button id="saveBtn" onclick="saveData()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:bg-blue-800 transition-all">發布數據</button>
+            </div>
+        </div>
+
+        <footer class="mt-24 mb-10 text-center">
+            <button onclick="toggleAdmin()" class="text-[10px] font-black text-slate-300 uppercase tracking-widest underline hover:text-blue-500">管理員登入</button>
+        </footer>
     </div>
 
     <script>
-        // 1. Firebase 配置 (已校正 Database URL)
+        // Firebase 配置
         const firebaseConfig = {
             apiKey: "AIzaSyAb3zYeQw5l6L9JwnkRDIL9cWuah1TaMCw",
             authDomain: "inmjhexamdata.firebaseapp.com",
@@ -101,24 +122,34 @@
         let examData = {};
         let myChart = null;
 
-        // 2. 獲取數據並監聽
+        // 監聽數據
         db.ref('exams').on('value', (snap) => {
             examData = snap.val() || {};
             const sel = document.getElementById('examSelect');
             const keys = Object.keys(examData).reverse();
             if (keys.length > 0) {
                 sel.innerHTML = keys.map(k => `<option value="${k}">${k}</option>`).join('');
-                document.getElementById('cloudStatus').innerHTML = '<span class="text-green-500 mr-1">●</span> 已連線新加坡資料庫';
+                document.getElementById('cloudStatus').innerHTML = '<span class="text-green-500 mr-1">●</span> 連線成功';
             } else {
-                sel.innerHTML = '<option>目前資料庫無考試數據</option>';
-                document.getElementById('cloudStatus').innerHTML = '<span class="text-red-500 mr-1">●</span> 資料庫為空';
+                sel.innerHTML = '<option>目前無資料</option>';
+                document.getElementById('cloudStatus').innerHTML = '<span class="text-red-500 mr-1">●</span> 資料庫空';
             }
-        }, (error) => {
-            document.getElementById('cloudStatus').innerHTML = '<span class="text-red-500 mr-1">●</span> 連線失敗';
-            console.error(error);
+        }, err => {
+            document.getElementById('cloudStatus').innerHTML = '<span class="text-red-500 mr-1">●</span> 權限被拒';
         });
 
-        // 3. 查詢邏輯
+        // 顯示切換 (修正後的函數)
+        function toggleAdmin() {
+            const panel = document.getElementById('adminPanel');
+            if (panel.classList.contains('hidden-view')) {
+                panel.classList.remove('hidden-view');
+                panel.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                panel.classList.add('hidden-view');
+            }
+        }
+
+        // 查詢
         function searchGrades() {
             const exId = document.getElementById('examSelect').value;
             const c = document.getElementById('classNum').value.trim();
@@ -126,31 +157,64 @@
             const b = document.getElementById('birthday').value.trim();
             const i = document.getElementById('idLastFour').value.trim();
 
-            if(!examData[exId]) return alert("查無此考試資料");
+            if(!examData[exId]) return alert("請先選擇考試項目");
 
             const list = examData[exId].entries;
             const user = list.find(e => e.class == c && e.seat == s && e.birthday == b && e.idLastFour == i);
 
             if(user) {
                 document.getElementById('searchView').classList.add('hidden-view');
+                document.getElementById('adminPanel').classList.add('hidden-view');
                 document.getElementById('reportView').classList.remove('hidden-view');
                 document.getElementById('resName').innerText = user.name;
                 document.getElementById('resClass').innerText = `${user.class} 班 ${user.seat} 號`;
                 document.getElementById('resAvg').innerText = user.weightedAvg;
 
-                // 排序計算年排名
                 const sorted = [...list].sort((a,b) => b.weightedAvg - a.weightedAvg);
                 const rank = sorted.findIndex(e => e.name === user.name && e.birthday === user.birthday) + 1;
                 document.getElementById('resRank').innerText = rank;
 
                 renderChart(user.scores);
             } else {
-                alert("驗證失敗！請確認班級、座號、生日或末四碼是否正確。");
+                alert("驗證失敗！");
             }
         }
 
-        // 4. 繪圖
-        function renderChart(scores) {
+        // 發布
+        function saveData() {
+            const raw = document.getElementById('rawInput').value.trim();
+            const title = document.getElementById('examTitleInput').value.trim();
+            const btn = document.getElementById('saveBtn');
+
+            if(!raw || !title) return alert("資料不全");
+
+            btn.innerText = "⏳ 處理中...";
+            btn.disabled = true;
+
+            try {
+                const rows = raw.split('\n');
+                const entries = rows.map(row => {
+                    const p = row.trim().split(/\s+/);
+                    const sc = [parseFloat(p[5]), parseFloat(p[6]), parseFloat(p[7]), parseFloat(p[8]), parseFloat(p[9])];
+                    return {
+                        class: p[0], seat: p[1], name: p[2], 
+                        birthday: p[3], idLastFour: p[4], 
+                        scores: sc, weightedAvg: Number((sc.reduce((a,b)=>a+b,0)/5).toFixed(2))
+                    };
+                });
+
+                db.ref('exams/' + title).set({ entries, updatedAt: new Date().toLocaleString() })
+                .then(() => { alert("發布成功！"); location.reload(); })
+                .catch(e => alert("錯誤: " + e.message));
+
+            } catch(e) {
+                alert("數據格式錯誤！請檢查每行是否都有完整欄位。");
+                btn.innerText = "發布數據";
+                btn.disabled = false;
+            }
+        }
+
+        function renderChart(sc) {
             const ctx = document.getElementById('radarChart').getContext('2d');
             if(myChart) myChart.destroy();
             myChart = new Chart(ctx, {
@@ -158,18 +222,18 @@
                 data: {
                     labels: ["國文", "英文", "數學", "社會", "自然"],
                     datasets: [{
-                        label: '得分',
-                        data: scores,
-                        backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                        data: sc,
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
                         borderColor: '#2563eb',
                         borderWidth: 3,
-                        pointBackgroundColor: '#2563eb'
+                        pointBackgroundColor: '#2563eb',
+                        pointRadius: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: { r: { min: 0, max: 100, beginAtZero: true, ticks: { display: false } } },
+                    scales: { r: { min: 0, max: 100, beginAtZero: true, ticks: { display: false }, grid: { color: '#e2e8f0' } } },
                     plugins: { legend: { display: false } }
                 }
             });
