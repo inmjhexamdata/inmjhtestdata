@@ -8,25 +8,61 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; color: #1e293b; overflow-x: hidden; }
-        .glass-card { background: white; @apply rounded-3xl shadow-lg border border-slate-100; }
+        
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .glass-card {
+            background: white;
+            @apply rounded-3xl shadow-lg border border-slate-100;
+        }
+
         .view-transition { transition: all 0.3s ease; }
-        .hidden-view { display: none !important; opacity: 0; }
-        .active-view { display: block !important; opacity: 1; }
+        .hidden-view { display: none; opacity: 0; }
+        .active-view { display: block; opacity: 1; }
+
         .radar-box { height: 320px; width: 100%; position: relative; }
+        
         .tab-btn.active { @apply bg-blue-600 text-white shadow-md; }
-        .medal-badge { width: 60px; height: 60px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
-        .excellence-tag { @apply bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-black border border-amber-200 ml-2; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        #passwordModal { backdrop-filter: blur(8px); }
-        .loader { border: 2px solid #f3f3f3; border-top: 2px solid #3498db; border-radius: 50%; width: 14px; height: 14px; animation: spin 1s linear infinite; display: inline-block; margin-right: 5px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .medal-badge {
+            width: 60px; height: 60px; border-radius: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem;
+        }
+
+        /* 標籤樣式 */
+        .excellence-tag {
+            @apply bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-black border border-amber-200 ml-2;
+            animation: pulse 2s infinite;
+        }
+
+        .advantage-tag {
+            @apply bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-black border border-indigo-200 ml-2;
+        }
+
+        .potential-tag {
+            @apply bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full font-black border border-emerald-200 ml-2;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        #passwordModal {
+            backdrop-filter: blur(4px);
+        }
     </style>
 </head>
 <body class="p-4">
 
     <div class="max-w-5xl mx-auto">
-        <!-- Header -->
+        <!-- 頁首導航 -->
         <header class="flex justify-between items-center mb-6">
             <div class="flex items-center gap-3">
                 <div class="bg-blue-600 p-2 rounded-lg text-white">
@@ -34,10 +70,7 @@
                 </div>
                 <h1 class="text-lg font-black tracking-tighter">英明國中分析系統</h1>
             </div>
-            <div id="cloudStatus" class="text-[10px] font-bold text-slate-400 flex items-center">
-                <span class="loader" id="loadingIcon"></span>
-                <span id="statusText">系統初始化中...</span>
-            </div>
+            <div id="cloudStatus" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">系統連線中</div>
         </header>
 
         <!-- 查詢頁面 -->
@@ -45,34 +78,28 @@
             <div class="max-w-md mx-auto mt-12 glass-card p-8 border-t-4 border-t-blue-600">
                 <h2 class="text-xl font-black mb-6 text-center">個人成績查詢</h2>
                 <div class="space-y-4">
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 ml-1 uppercase">選擇考試</label>
-                        <select id="examSelect" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold text-sm outline-none mt-1">
-                            <option value="">載入中...</option>
-                        </select>
-                    </div>
+                    <select id="examSelect" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold text-sm outline-none">
+                        <option value="">載入考試資料中...</option>
+                    </select>
                     <div class="grid grid-cols-2 gap-3">
                         <input type="text" id="classNum" placeholder="班級 (如:305)" class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold">
                         <input type="text" id="seatNum" placeholder="座號 (如:01)" class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold">
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <input type="text" id="birthday" placeholder="生日(MMDD)" maxlength="4" class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold">
-                        <input type="password" id="idLastFour" placeholder="身分證末4碼" maxlength="4" class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold">
+                        <input type="password" id="idLastFour" placeholder="身分證末4碼" class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold">
                     </div>
-                    <button id="searchBtn" onclick="window.searchGrades()" class="w-full bg-blue-600 text-white font-black rounded-xl py-4 shadow-lg hover:bg-blue-700 transition-all active:scale-95 disabled:bg-slate-300">開始分析報告</button>
+                    <button onclick="searchGrades()" class="w-full bg-blue-600 text-white font-black rounded-xl py-4 shadow-lg hover:bg-blue-700 transition-all">開始分析報告</button>
                 </div>
-                <p class="text-[10px] text-slate-400 text-center mt-6">※ 若無法查詢請聯繫系統管理員</p>
+                <p class="text-center text-[10px] text-slate-400 mt-4 font-bold">※ 僅供學生成績分析使用，數據受資安保護</p>
             </div>
         </div>
 
-        <!-- 報告頁面 -->
+        <!-- 分析報告頁面 -->
         <div id="reportView" class="view-transition hidden-view space-y-6 pb-20">
-            <button onclick="window.backToSearch()" class="flex items-center gap-2 text-slate-400 font-bold text-xs hover:text-blue-600">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M10 19l-7-7m0 0l7-7m-7 7h18" stroke-width="2"/></svg>
-                返回重新查詢
-            </button>
+            <button onclick="backToSearch()" class="text-slate-400 font-bold text-xs hover:text-blue-600">← 返回重新查詢</button>
 
-            <!-- 資訊卡片 -->
+            <!-- 核心指標卡片 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="glass-card p-5 border-l-4 border-l-blue-600 flex items-center gap-4">
                     <div id="medalBadge" class="medal-badge bg-slate-100">🏆</div>
@@ -81,78 +108,137 @@
                         <div class="text-xs font-bold text-slate-400" id="displayClass">--</div>
                     </div>
                 </div>
-                <div class="glass-card p-5 bg-slate-900 text-white text-center">
+                <div class="glass-card p-5 bg-slate-900 text-white flex flex-col justify-center items-center text-center">
                     <span class="text-[9px] font-black text-slate-500 uppercase">班級排名</span>
-                    <div class="text-2xl font-black" id="displayClassRank">-- / --</div>
+                    <div class="text-2xl font-black"><span id="displayClassRank">--</span> <span class="text-xs text-slate-500">/ <span id="displayClassTotal">--</span></span></div>
                 </div>
-                <div class="glass-card p-5 bg-indigo-700 text-white text-center">
+                <div class="glass-card p-5 bg-indigo-700 text-white flex flex-col justify-center items-center text-center">
                     <span class="text-[9px] font-black text-indigo-300 uppercase">年級排名</span>
-                    <div class="text-2xl font-black" id="displaySchoolRank">-- / --</div>
+                    <div class="text-2xl font-black"><span id="displaySchoolRank">--</span> <span class="text-xs text-indigo-300">/ <span id="displaySchoolTotal">--</span></span></div>
                 </div>
             </div>
 
-            <!-- 成績表格與圖表 -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="glass-card overflow-hidden">
-                    <div class="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                        <h3 class="text-xs font-black text-slate-500 uppercase">成績明細</h3>
-                        <div class="text-right">
-                            <span class="text-[10px] font-bold text-slate-400">權重總平均</span>
-                            <div id="weightedAvgDisp" class="text-xl font-black text-blue-600">--</div>
+            <!-- 榮譽激勵榜 -->
+            <div id="honorBanner" class="hidden space-y-3">
+                <!-- 卓越榜 (頂標以上) -->
+                <div id="excellenceBox" class="hidden glass-card p-6 border-2 border-amber-200 bg-amber-50/50">
+                    <div class="flex items-start gap-4">
+                        <div class="text-3xl">✨</div>
+                        <div class="flex-1">
+                            <h4 class="text-amber-800 font-black text-sm mb-2 uppercase tracking-widest">卓越榮譽榜 Excellence</h4>
+                            <div id="excellenceMsg" class="space-y-2"></div>
                         </div>
                     </div>
+                </div>
+                <!-- 優勢榜 (高標以上) -->
+                <div id="advantageBox" class="hidden glass-card p-6 border-2 border-indigo-200 bg-indigo-50/50">
+                    <div class="flex items-start gap-4">
+                        <div class="text-3xl">💪</div>
+                        <div class="flex-1">
+                            <h4 class="text-indigo-800 font-black text-sm mb-2 uppercase tracking-widest">優勢科目榜 Advantage</h4>
+                            <div id="advantageMsg" class="space-y-2"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 潛力榜 (進步空間大) -->
+                <div id="potentialBox" class="hidden glass-card p-6 border-2 border-emerald-200 bg-emerald-50/50">
+                    <div class="flex items-start gap-4">
+                        <div class="text-3xl">🌱</div>
+                        <div class="flex-1">
+                            <h4 class="text-emerald-800 font-black text-sm mb-2 uppercase tracking-widest">潛力開發榜 Potential</h4>
+                            <div id="potentialMsg" class="space-y-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 成績數據表格 -->
+            <div class="glass-card overflow-hidden">
+                <div class="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="text-xs font-black text-slate-500">1. 各科得分明細</h3>
+                    <div class="text-right">
+                        <span class="text-[10px] font-bold text-slate-400">權重總平均</span>
+                        <div id="weightedAvgDisp" class="text-xl font-black text-blue-600">--</div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead class="bg-slate-50/50 text-[10px] text-slate-400 font-black">
                             <tr>
                                 <th class="p-3 text-left pl-6">科目</th>
                                 <th class="p-3 text-center">成績</th>
-                                <th class="p-3 text-center">平均</th>
+                                <th class="p-3 text-center">全年級平均</th>
+                                <th class="p-3 text-center">年級高標 (50%)</th>
+                                <th class="p-3 text-right pr-6 text-amber-500">年級頂標 (25%)</th>
                             </tr>
                         </thead>
                         <tbody id="gradeTableBody" class="font-bold"></tbody>
                     </table>
                 </div>
-                <div class="glass-card p-6">
-                    <h3 class="text-xs font-black text-slate-500 mb-4 uppercase">實力分析圖</h3>
-                    <div class="radar-box"><canvas id="radarChart"></canvas></div>
+            </div>
+
+            <!-- 能力分析圖表區 -->
+            <div class="glass-card overflow-hidden">
+                <div class="flex flex-col md:flex-row md:flex-nowrap w-full">
+                    <div class="w-full md:w-[65%] p-6 border-b md:border-b-0 md:border-r border-slate-100">
+                        <h3 class="text-xs font-black text-slate-500 mb-4 flex items-center gap-2">
+                            <span class="w-1 h-3 bg-blue-600 rounded-full"></span> 2. 能力分析雷達圖
+                        </h3>
+                        <div class="radar-box">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-[35%] p-6 bg-slate-50/30 flex flex-col justify-center">
+                        <h3 class="text-xs font-black text-slate-400 text-center mb-6">會考預估等第</h3>
+                        <div id="simCards" class="flex flex-col gap-2 mx-auto w-full max-w-[200px]"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 組距分佈圖 -->
+            <div class="glass-card p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                    <h3 class="text-xs font-black text-slate-500">3. 成績組距分佈</h3>
+                    <div id="subjectTabs" class="flex gap-1 bg-slate-100 p-1 rounded-lg">
+                        <button onclick="updateDistChart('all')" class="tab-btn active px-2 py-1 text-[10px] font-bold rounded">總平均</button>
+                        <button onclick="updateDistChart(0)" class="tab-btn px-2 py-1 text-[10px] font-bold rounded">國文</button>
+                        <button onclick="updateDistChart(1)" class="tab-btn px-2 py-1 text-[10px] font-bold rounded">英文</button>
+                        <button onclick="updateDistChart(2)" class="tab-btn px-2 py-1 text-[10px] font-bold rounded">數學</button>
+                        <button onclick="updateDistChart(3)" class="tab-btn px-2 py-1 text-[10px] font-bold rounded">社會</button>
+                        <button onclick="updateDistChart(4)" class="tab-btn px-2 py-1 text-[10px] font-bold rounded">自然</button>
+                    </div>
+                </div>
+                <div class="h-[200px] w-full">
+                    <canvas id="distChart"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- 管理員入口 -->
+        <!-- 管理後台入口 -->
         <footer class="mt-12 py-10 flex flex-col items-center">
-            <button onclick="window.openAdminModal()" class="text-[9px] font-bold text-slate-300 tracking-widest uppercase underline hover:text-slate-500">管理員模式入口</button>
-            
-            <div id="adminPanel" class="hidden mt-4 w-full bg-slate-900 rounded-2xl p-6 space-y-4 shadow-2xl border border-slate-700">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                    <h4 class="text-white text-xs font-black uppercase tracking-widest">數據管理後台</h4>
+            <button onclick="openAdminModal()" class="text-[9px] font-bold text-slate-300 tracking-widest uppercase underline hover:text-slate-500">管理員模式入口</button>
+            <div id="adminPanel" class="hidden mt-4 w-full bg-slate-900 rounded-2xl p-6 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-2">
+                    <h4 class="text-white text-xs font-black">數據管理後台</h4>
                     <button onclick="document.getElementById('adminPanel').classList.add('hidden')" class="text-slate-500 hover:text-white text-xs">關閉</button>
                 </div>
-                <div class="flex items-center gap-3">
-                     <label class="cursor-pointer bg-slate-700 hover:bg-slate-600 text-white text-[10px] px-3 py-1.5 rounded-lg font-bold">
-                        1. 匯入 CSV
-                        <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="window.handleCSV(this)">
-                    </label>
-                    <span class="text-[10px] text-slate-500">或直接貼上 Excel 內容於下方：</span>
-                </div>
-                <textarea id="rawInput" rows="8" class="w-full bg-slate-800 text-white p-3 rounded-lg text-xs font-mono border-none outline-none focus:ring-1 focus:ring-blue-500" placeholder="班級 號碼 姓名 生日 身分證末四碼 國 英 數 社 自"></textarea>
+                <textarea id="rawInput" rows="5" class="w-full bg-slate-800 text-white p-3 rounded-lg text-xs font-mono" placeholder="請貼上數據表格內容 (欄位：班級、座號、姓名、生日、身分證末4碼、國文、英文、數學、社會、自然)"></textarea>
                 <div class="flex flex-col sm:flex-row gap-2">
-                    <input type="text" id="examTitleInput" class="flex-1 bg-slate-800 text-white rounded-lg p-3 text-xs border-none outline-none focus:ring-1 focus:ring-blue-500" placeholder="請輸入考試標題 (例如：113-1第一次段考)">
-                    <button id="saveBtn" onclick="window.saveData()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-xs font-bold transition-all">2. 發布至雲端</button>
+                    <input type="text" id="examTitleInput" class="flex-1 bg-slate-800 text-white rounded-lg p-3 text-xs" placeholder="例如：113學年度第一次段考">
+                    <button id="saveBtn" onclick="saveData()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-xs font-bold transition-all">發布數據至雲端</button>
                 </div>
             </div>
         </footer>
     </div>
 
-    <!-- 管理員驗證彈窗 -->
-    <div id="passwordModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-card max-w-xs w-full p-8 text-center border-none">
-            <h3 class="font-black text-slate-800 mb-2">管理員驗證</h3>
-            <p class="text-xs text-slate-400 mb-6 font-bold">請輸入權限密碼以管理數據</p>
-            <input type="password" id="adminPwdInput" class="w-full bg-slate-100 border-none rounded-xl p-3 text-center mb-4 focus:ring-2 focus:ring-blue-500 outline-none font-bold" placeholder="****">
+    <!-- 管理員密碼驗證彈窗 -->
+    <div id="passwordModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-card max-w-xs w-full p-8 text-center animate-in fade-in zoom-in duration-300">
+            <h3 class="font-black text-slate-800 mb-4">驗證管理員身分</h3>
+            <input type="password" id="adminPwdInput" class="w-full bg-slate-100 border-none rounded-xl p-3 text-center mb-4 focus:ring-2 focus:ring-blue-500 outline-none">
             <div class="flex gap-2">
-                <button onclick="window.closeAdminModal()" class="flex-1 text-slate-400 font-bold text-sm">取消</button>
-                <button onclick="window.verifyAdminPassword()" class="flex-1 bg-blue-600 text-white py-2 rounded-xl font-black text-sm">確定</button>
+                <button onclick="closeAdminModal()" class="flex-1 text-slate-400 font-bold text-sm">取消</button>
+                <button onclick="verifyAdminPassword()" class="flex-1 bg-blue-600 text-white py-2 rounded-xl font-black text-sm">確定</button>
             </div>
         </div>
     </div>
@@ -162,221 +248,334 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // ================= CONFIG & INIT =================
+        // Firebase 初始化配置
         const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'inmjh-exam-system';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ym-school-analysis-v1';
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         
-        let cloudData = [], user = null, charts = {};
+        let cloudData = [], charts = {}, currentUser = null, lastAnalysis = { user: null, gradeEntries: [] };
 
-        // ================= AUTH =================
-        const initAuth = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (e) {
-                document.getElementById('statusText').innerText = '連線失敗，請重新載入';
-            }
-        };
-
+        // 監聽雲端資料與認證狀態
         onAuthStateChanged(auth, u => {
-            user = u;
+            currentUser = u;
             if (u) {
-                // 讀取考試列表
+                // 即時監聽考試清單
                 onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', 'exams')), snap => {
                     cloudData = snap.docs.map(d => d.data());
                     const sel = document.getElementById('examSelect');
                     if (cloudData.length) {
                         sel.innerHTML = cloudData.map(ex => `<option value="${ex.id}">${ex.id}</option>`).join('');
                     } else {
-                        sel.innerHTML = '<option value="">尚無數據</option>';
+                        sel.innerHTML = `<option value="">尚未上傳數據</option>`;
                     }
-                    document.getElementById('loadingIcon').classList.add('hidden');
-                    document.getElementById('statusText').innerText = '雲端連線正常';
-                }, err => {
-                    document.getElementById('statusText').innerText = '無權限讀取數據';
+                    document.getElementById('cloudStatus').innerText = '數據已即時同步';
                 });
             }
         });
 
+        // 匿名登入
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
+            else await signInAnonymously(auth);
+        };
         initAuth();
 
-        // ================= GLOBAL FUNCTIONS (掛載到 window) =================
-        
-        window.openAdminModal = () => {
-            document.getElementById('passwordModal').classList.remove('hidden');
-            document.getElementById('adminPwdInput').focus();
-        };
-
-        window.closeAdminModal = () => {
-            document.getElementById('passwordModal').classList.add('hidden');
-            document.getElementById('adminPwdInput').value = '';
-        };
-
-        window.verifyAdminPassword = () => {
-            const pwd = document.getElementById('adminPwdInput').value;
-            if (pwd === '0307') {
-                document.getElementById('adminPanel').classList.remove('hidden');
-                window.closeAdminModal();
-                // 滾動到下方
-                setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
-            } else {
-                alert('密碼錯誤！');
-            }
-        };
-
-        window.handleCSV = (input) => {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const text = e.target.result;
-                const formatted = text.split('\n').map(line => line.trim().split(',').join('\t')).join('\n');
-                document.getElementById('rawInput').value = formatted;
-                alert('CSV 讀取成功，資料已填入框中。');
-            };
-            reader.readAsText(file);
-        };
-
-        window.saveData = async () => {
-            if (!user) return alert("系統尚未連線完成，請稍候。");
-            const btn = document.getElementById('saveBtn');
-            const raw = document.getElementById('rawInput').value.trim();
-            const title = document.getElementById('examTitleInput').value.trim();
-            
-            if (!raw || !title) return alert('請輸入完整內容與考試標題');
-            
-            btn.disabled = true;
-            btn.innerText = '正在發布至雲端...';
-
-            try {
-                const entries = raw.split('\n').map(l => {
-                    const p = l.split('\t');
-                    if (p.length < 10) return null;
-                    const scores = p.slice(5, 10).map(v => parseFloat(v) || 0);
-                    // 權重：國5, 英3, 數4, 社3, 自3 (共18權重)
-                    const weightedAvg = (scores[0]*5 + scores[1]*3 + scores[2]*4 + scores[3]*3 + scores[4]*3) / 18;
-                    return { 
-                        class: p[0].trim(), 
-                        seat: p[1].trim(), 
-                        name: p[2].trim(), 
-                        birthday: p[3].trim(), 
-                        idLastFour: p[4].trim(), 
-                        scores, 
-                        weightedAvg 
-                    };
-                }).filter(e => e);
-
-                if (entries.length === 0) throw new Error("資料格式不正確（需 Tab 分隔或 10 欄位）");
-
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'exams', title), {
-                    id: title,
-                    entries,
-                    time: Date.now()
-                });
-
-                alert('發布完成！');
-                document.getElementById('rawInput').value = '';
-                document.getElementById('adminPanel').classList.add('hidden');
-            } catch (err) {
-                alert('儲存失敗：' + err.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerText = '2. 發布至雲端';
-            }
-        };
-
+        // 執行成績查詢
         window.searchGrades = () => {
             const exId = document.getElementById('examSelect').value;
-            const cNum = document.getElementById('classNum').value.trim();
-            const sNum = document.getElementById('seatNum').value.trim();
-            const bDay = document.getElementById('birthday').value.trim();
-            const id4 = document.getElementById('idLastFour').value.trim();
-
-            if(!exId || !cNum || !sNum || !bDay || !id4) return alert('請完整填寫所有查詢資訊');
-
+            const c = document.getElementById('classNum').value.trim();
+            const s = document.getElementById('seatNum').value.trim().padStart(2, '0');
+            const b = document.getElementById('birthday').value.trim();
+            const idLast = document.getElementById('idLastFour').value.trim();
+            
             const exam = cloudData.find(ex => ex.id === exId);
-            if (!exam) return alert('找不到該次考試數據');
+            if (!exam) return alert("請先選擇考試項目");
 
-            // 格式化座號
-            const formattedSeat = sNum.padStart(2, '0');
             const foundUser = exam.entries.find(e => 
-                e.class === cNum && 
-                (e.seat.toString().padStart(2, '0') === formattedSeat) &&
-                e.birthday === bDay &&
-                e.idLastFour === id4
+                e.class === c && 
+                e.seat.padStart(2, '0') === s && 
+                e.birthday === b && 
+                e.idLastFour === idLast
             );
 
             if (foundUser) {
-                renderReport(foundUser, exam);
                 document.getElementById('searchView').classList.add('hidden-view');
-                document.getElementById('reportView').classList.add('active-view');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                renderReport(foundUser, exam);
+                setTimeout(() => {
+                    document.getElementById('reportView').classList.remove('hidden-view');
+                    document.getElementById('reportView').classList.add('active-view');
+                }, 100);
             } else {
-                alert('驗證失敗：找不到符合資料，請檢查班級、座號、生日或末4碼。');
+                alert("查無資料，請確認輸入資訊（班級、座號、生日、身分證末四碼）。");
             }
         };
 
         window.backToSearch = () => {
-            document.getElementById('reportView').classList.remove('active-view');
-            document.getElementById('searchView').classList.remove('hidden-view');
+            document.getElementById('reportView').className = 'view-transition hidden-view';
+            document.getElementById('searchView').className = 'view-transition active-view';
         };
 
-        function renderReport(user, exam) {
-            document.getElementById('displayName').innerText = user.name;
-            document.getElementById('displayClass').innerText = `${user.class} 班 ${user.seat} 號`;
-            document.getElementById('weightedAvgDisp').innerText = user.weightedAvg.toFixed(1);
+        // 激勵語庫
+        const encourageExcellence = [
+            "展現了超群的學術深度，是該領域的領航員！",
+            "對知識的掌握極為精準，思維深度令人讚賞！",
+            "在全體考生中名列前茅，展現了卓越的競爭力！"
+        ];
+        const encourageAdvantage = [
+            "具備穩健的實力，是你在學習路上的強大優勢！",
+            "表現亮眼，展現出良好的學習效率與穩定的發揮！",
+            "該科實力堅強，距離頂尖僅差一步，請繼續保持！"
+        ];
+        const encouragePotential = [
+            "這科是你最有爆發力的領域，只要再多花點心思，成績會更驚人！",
+            "你已經掌握了核心知識，再一點點的衝刺就能跨入優秀行列！",
+            "這科具備極佳的進步基礎，是你接下來最值得投資的黃金學科！"
+        ];
 
-            // 計算排名 (同年級開頭的班級)
-            const yearPrefix = user.class.substring(0, 1);
-            const gradeEntries = exam.entries.filter(e => e.class.startsWith(yearPrefix)).sort((a,b) => b.weightedAvg - a.weightedAvg);
-            const classEntries = exam.entries.filter(e => e.class === user.class).sort((a,b) => b.weightedAvg - a.weightedAvg);
-            
-            const cRank = classEntries.findIndex(e => e.weightedAvg <= user.weightedAvg) + 1;
-            const sRank = gradeEntries.findIndex(e => e.weightedAvg <= user.weightedAvg) + 1;
+        // 渲染報告內容
+        function renderReport(targetUser, exam) {
+            const year = targetUser.class.substring(0, 1);
+            // 取得同年級所有學生的數據用於計算平均
+            const gradeEntries = exam.entries.filter(e => e.class.startsWith(year)).sort((a,b) => b.weightedAvg - a.weightedAvg);
+            const classEntries = exam.entries.filter(e => e.class === targetUser.class).sort((a,b) => b.weightedAvg - a.weightedAvg);
+            lastAnalysis = { user: targetUser, gradeEntries };
 
-            document.getElementById('displayClassRank').innerText = `${cRank} / ${classEntries.length}`;
-            document.getElementById('displaySchoolRank').innerText = `${sRank} / ${gradeEntries.length}`;
+            // 基礎資訊填寫
+            document.getElementById('displayName').innerText = targetUser.name;
+            document.getElementById('displayClass').innerText = `${targetUser.class}班 ${targetUser.seat}號`;
+            document.getElementById('weightedAvgDisp').innerText = targetUser.weightedAvg.toFixed(1);
+            document.getElementById('displayClassRank').innerText = classEntries.findIndex(e => e.weightedAvg <= targetUser.weightedAvg) + 1;
+            document.getElementById('displayClassTotal').innerText = classEntries.length;
+            document.getElementById('displaySchoolRank').innerText = gradeEntries.findIndex(e => e.weightedAvg <= targetUser.weightedAvg) + 1;
+            document.getElementById('displaySchoolTotal').innerText = gradeEntries.length;
 
-            // 渲染表格
+            // 計算各科統計量
             const subs = ["國文", "英文", "數學", "社會", "自然"];
             const stats = subs.map((_, i) => {
-                const s = gradeEntries.map(e => e.scores[i]);
-                const avg = (s.reduce((a,b)=>a+b,0) / s.length).toFixed(1);
-                return { avg };
+                const s = gradeEntries.map(e => e.scores[i]).sort((a,b)=>b-a);
+                const avg = (s.reduce((a,b)=>a+b,0)/s.length).toFixed(1);
+                const topCount = Math.max(1, Math.floor(s.length * 0.25));
+                const topAvg = (s.slice(0, topCount).reduce((a,b)=>a+b,0)/topCount).toFixed(1);
+                const highCount = Math.max(1, Math.floor(s.length * 0.50));
+                const highAvg = (s.slice(0, highCount).reduce((a,b)=>a+b,0)/highCount).toFixed(1);
+                return { avg, high: highAvg, top: topAvg };
             });
 
-            document.getElementById('gradeTableBody').innerHTML = user.scores.map((s, i) => `
-                <tr class="border-b border-slate-50">
-                    <td class="p-3 pl-6 text-slate-500">${subs[i]}</td>
-                    <td class="p-3 text-center text-slate-800 text-lg">${s}</td>
-                    <td class="p-3 text-center text-slate-400 text-xs">${stats[i].avg}</td>
-                </tr>
-            `).join('');
+            // 科目分類
+            const excellenceSubs = [];
+            const advantageSubs = [];
+            const remainingSubs = [];
 
-            // 雷達圖
+            targetUser.scores.forEach((s, i) => {
+                if (s >= parseFloat(stats[i].top)) excellenceSubs.push({ idx: i, name: subs[i], score: s });
+                else if (s >= parseFloat(stats[i].high)) advantageSubs.push({ idx: i, name: subs[i], score: s });
+                else remainingSubs.push({ idx: i, name: subs[i], score: s });
+            });
+
+            let potentialSub = remainingSubs.length > 0 ? remainingSubs.sort((a,b) => b.score - a.score)[0] : null;
+
+            // 渲染表格內容
+            document.getElementById('gradeTableBody').innerHTML = targetUser.scores.map((s, i) => {
+                let tag = '';
+                let scoreColor = 'text-slate-600';
+                if (excellenceSubs.some(x => x.idx === i)) {
+                    tag = '<span class="excellence-tag">卓越</span>';
+                    scoreColor = 'text-amber-600';
+                } else if (advantageSubs.some(x => x.idx === i)) {
+                    tag = '<span class="advantage-tag">優勢</span>';
+                    scoreColor = 'text-indigo-600';
+                } else if (potentialSub && potentialSub.idx === i) {
+                    tag = '<span class="potential-tag">潛力</span>';
+                    scoreColor = 'text-emerald-600';
+                }
+                
+                return `
+                <tr class="border-b border-slate-50">
+                    <td class="p-3 pl-6 font-bold text-slate-500">
+                        ${subs[i]} ${tag}
+                    </td>
+                    <td class="p-3 text-center ${scoreColor} text-lg">${s}</td>
+                    <td class="p-3 text-center text-slate-400 text-xs">${stats[i].avg}</td>
+                    <td class="p-3 text-center text-slate-500 text-xs">${stats[i].high}</td>
+                    <td class="p-3 text-right pr-6 text-amber-500 text-xs">${stats[i].top}</td>
+                </tr>
+            `}).join('');
+
+            // 更新榮譽榜區塊
+            const honorBanner = document.getElementById('honorBanner');
+            const exBox = document.getElementById('excellenceBox');
+            const adBox = document.getElementById('advantageBox');
+            const poBox = document.getElementById('potentialBox');
+            
+            if (excellenceSubs.length > 0 || advantageSubs.length > 0 || potentialSub) {
+                honorBanner.classList.remove('hidden');
+                
+                if (excellenceSubs.length > 0) {
+                    exBox.classList.remove('hidden');
+                    document.getElementById('excellenceMsg').innerHTML = excellenceSubs.map(item => `
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <span class="bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded font-black w-fit">【${item.name}】</span>
+                            <span class="text-slate-600 text-xs font-bold leading-relaxed">${encourageExcellence[Math.floor(Math.random() * encourageExcellence.length)]}</span>
+                        </div>
+                    `).join('');
+                } else exBox.classList.add('hidden');
+
+                if (advantageSubs.length > 0) {
+                    adBox.classList.remove('hidden');
+                    document.getElementById('advantageMsg').innerHTML = advantageSubs.map(item => `
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <span class="bg-indigo-500 text-white text-[10px] px-2 py-0.5 rounded font-black w-fit">【${item.name}】</span>
+                            <span class="text-slate-600 text-xs font-bold leading-relaxed">${encourageAdvantage[Math.floor(Math.random() * encourageAdvantage.length)]}</span>
+                        </div>
+                    `).join('');
+                } else adBox.classList.add('hidden');
+
+                if (potentialSub) {
+                    poBox.classList.remove('hidden');
+                    document.getElementById('potentialMsg').innerHTML = `
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <span class="bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded font-black w-fit">【${potentialSub.name}】</span>
+                            <span class="text-slate-600 text-xs font-bold leading-relaxed">${encouragePotential[Math.floor(Math.random() * encouragePotential.length)]}</span>
+                        </div>
+                    `;
+                } else poBox.classList.add('hidden');
+            }
+
+            // 更新雷達圖
             if (charts.radar) charts.radar.destroy();
             charts.radar = new Chart(document.getElementById('radarChart'), {
                 type: 'radar',
                 data: {
                     labels: subs,
                     datasets: [
-                        { label: '個人表現', data: user.scores, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', borderWidth: 3 },
+                        { label: '個人表現', data: targetUser.scores, borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', borderWidth: 3 },
                         { label: '年級平均', data: stats.map(s => s.avg), borderColor: '#cbd5e1', borderDash: [5,5], fill: false }
                     ]
                 },
                 options: { 
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: false, 
                     scales: { r: { min: 0, max: 100, ticks: { display: false } } },
-                    plugins: { legend: { position: 'bottom' } }
+                    plugins: { legend: { labels: { font: { weight: 'bold', size: 10 } } } }
                 }
             });
+
+            // 等第預估渲染
+            document.getElementById('simCards').innerHTML = targetUser.scores.map((s, i) => {
+                let lvl = 'C', color = 'text-rose-500', bg = 'bg-rose-50';
+                if (s >= 90) { lvl = 'A++'; color = 'text-emerald-600'; bg = 'bg-emerald-50'; }
+                else if (s >= 85) { lvl = 'A+'; color = 'text-emerald-500'; bg = 'bg-emerald-50'; }
+                else if (s >= 80) { lvl = 'A'; color = 'text-emerald-400'; bg = 'bg-emerald-50'; }
+                else if (s >= 70) { lvl = 'B++'; color = 'text-blue-600'; bg = 'bg-blue-50'; }
+                else if (s >= 60) { lvl = 'B+'; color = 'text-blue-500'; bg = 'bg-blue-50'; }
+                else if (s >= 40) { lvl = 'B'; color = 'text-blue-400'; bg = 'bg-blue-50'; }
+                return `<div class="flex items-center justify-between px-4 py-2 ${bg} rounded-xl border border-white shadow-sm">
+                    <span class="text-[10px] font-black text-slate-400">${subs[i]}</span>
+                    <span class="font-black ${color}">${lvl}</span>
+                </div>`;
+            }).join('');
+
+            updateDistChart('all');
         }
+
+        // 更新組距分佈圖
+        window.updateDistChart = (type) => {
+            const { user: targetUser, gradeEntries } = lastAnalysis;
+            const labels = ['100', '90-99', '80-89', '70-79', '60-69', '50-59', '40-49', '30-39', '20-29', '10-19', '0-9'];
+            document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', (type === 'all' ? 0 : type + 1) === i));
+
+            const dist = Array(11).fill(0);
+            gradeEntries.forEach(e => {
+                const v = type === 'all' ? e.weightedAvg : e.scores[type];
+                const bin = v === 100 ? 0 : 10 - Math.floor(v / 10);
+                dist[Math.max(0, Math.min(bin, 10))]++;
+            });
+            
+            const userVal = type === 'all' ? targetUser.weightedAvg : targetUser.scores[type];
+            const userBin = userVal === 100 ? 0 : Math.max(0, Math.min(10 - Math.floor(userVal / 10), 10));
+
+            if (charts.dist) charts.dist.destroy();
+            charts.dist = new Chart(document.getElementById('distChart'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{ 
+                        data: dist, 
+                        backgroundColor: labels.map((_, i) => i === userBin ? '#2563eb' : '#e2e8f0'), 
+                        borderRadius: 4 
+                    }]
+                },
+                options: { 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { beginAtZero: true, grid: { display: false } },
+                        x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+                    }
+                }
+            });
+        };
+
+        // 管理員功能
+        window.openAdminModal = () => { 
+            document.getElementById('passwordModal').classList.remove('hidden'); 
+            document.getElementById('adminPwdInput').focus(); 
+        };
+        window.closeAdminModal = () => { 
+            document.getElementById('passwordModal').classList.add('hidden'); 
+            document.getElementById('adminPwdInput').value = ''; 
+        };
+        window.verifyAdminPassword = () => { 
+            if (document.getElementById('adminPwdInput').value === '0307') { 
+                document.getElementById('adminPanel').classList.remove('hidden'); 
+                closeAdminModal(); 
+            } else {
+                alert('密碼錯誤'); 
+            }
+        };
+
+        window.saveData = async () => {
+            if (!currentUser) return alert("系統連線中，請稍候...");
+            const btn = document.getElementById('saveBtn');
+            const raw = document.getElementById('rawInput').value.trim();
+            const title = document.getElementById('examTitleInput').value.trim();
+            if (!raw || !title) return alert('請填入完整資料內容與考試名稱');
+
+            btn.disabled = true; btn.innerText = '處理中...';
+            try {
+                const entries = raw.split('\n').map(l => {
+                    const p = l.split('\t'); // 假設為 Excel 貼上（Tab 分隔）
+                    if (p.length < 10) return null;
+                    const scores = p.slice(5, 10).map(v => parseFloat(v) || 0);
+                    // 簡易加權：國5 英3 數4 社3 自3 (總權重 18)
+                    const weightedAvg = (scores[0]*5 + scores[1]*3 + scores[2]*4 + scores[3]*3 + scores[4]*3) / 18;
+                    return { 
+                        class: p[0], 
+                        seat: p[1], 
+                        name: p[2], 
+                        birthday: p[3], 
+                        idLastFour: p[4], 
+                        scores, 
+                        weightedAvg 
+                    };
+                }).filter(e => e);
+
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'exams', title), { 
+                    id: title, 
+                    entries, 
+                    time: Date.now() 
+                });
+                alert('數據發布完成！學生現在可以查詢了。');
+                document.getElementById('rawInput').value = '';
+                document.getElementById('examTitleInput').value = '';
+            } catch (err) { 
+                console.error(err);
+                alert('儲存失敗，請檢查權限設定或格式。'); 
+            } finally { 
+                btn.disabled = false; btn.innerText = '發布數據至雲端'; 
+            }
+        };
     </script>
 </body>
 </html>
