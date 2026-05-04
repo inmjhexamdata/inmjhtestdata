@@ -318,11 +318,32 @@
             });
         }
 
+        // 核心運算：計算排名邏輯 (不跨年級，處理同分)
+        function calculateRank(targetValue, allValues) {
+            const sorted = [...new Set(allValues)].sort((a, b) => b - a);
+            // 找出比 targetValue 高的分數有多少人 (這不是真正的排名，真正的排名要算人數)
+            let rank = 1;
+            allValues.forEach(val => {
+                if (val > targetValue) rank++;
+            });
+            return rank;
+        }
+
         function renderReport(targetUser, exam) {
             const subs = ["國文", "英文", "數學", "社會", "自然"];
             const gradePrefix = targetUser.class.substring(0, 1);
+            
+            // 重要：過濾出同一年級的所有學生 (確保不跨年級排名)
             const gradeEntries = exam.entries.filter(e => e.class.startsWith(gradePrefix));
+            // 過濾出同一班級的所有學生
             const classEntries = exam.entries.filter(e => e.class === targetUser.class);
+
+            // 計算系統自定義排名 (基於加權平均)
+            const allGradeAvgs = gradeEntries.map(e => e.weightedAvg);
+            const allClassAvgs = classEntries.map(e => e.weightedAvg);
+            
+            const sysSchoolRank = calculateRank(targetUser.weightedAvg, allGradeAvgs);
+            const sysClassRank = calculateRank(targetUser.weightedAvg, allClassAvgs);
 
             const gradeStats = subs.map((name, i) => {
                 const subScores = gradeEntries.map(e => e.scores[i]).sort((a, b) => b - a);
@@ -336,10 +357,13 @@
 
             document.getElementById('displayName').innerText = targetUser.name;
             document.getElementById('displayClass').innerText = `${targetUser.class}班 ${targetUser.seat}號`;
-            document.getElementById('displayClassRank').innerText = targetUser.classRank;
+            
+            // 使用系統計算的排名顯示
+            document.getElementById('displayClassRank').innerText = sysClassRank;
             document.getElementById('displayClassTotal').innerText = classEntries.length;
-            document.getElementById('displaySchoolRank').innerText = targetUser.schoolRank;
+            document.getElementById('displaySchoolRank').innerText = sysSchoolRank;
             document.getElementById('displaySchoolTotal').innerText = gradeEntries.length;
+            
             document.getElementById('weightedAvgDisp').innerText = targetUser.weightedAvg.toFixed(2);
 
             const tableBody = document.getElementById('gradeTableBody');
@@ -433,6 +457,7 @@
                 if (p.length < 13) return null;
                 const scores = [parseFloat(p[5])||0, parseFloat(p[6])||0, parseFloat(p[7])||0, parseFloat(p[8])||0, parseFloat(p[9])||0];
                 const avg = ((scores[0]*5)+(scores[2]*4)+(scores[1]*3)+(scores[4]*3)+(scores[3]*3))/18;
+                // 排名欄位在存檔時仍保留，但查詢時會由系統重新計算
                 return { class: p[0].trim(), seat: p[1].trim(), name: p[2].trim(), birthday: p[3].trim(), idLastFour: p[4].trim(), scores, weightedAvg: avg, classRank: p[11], schoolRank: p[12] };
             }).filter(e => e);
 
