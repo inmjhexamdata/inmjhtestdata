@@ -6,6 +6,8 @@
     <title>英明國中段考成績查詢系統新版 - Sheets 版</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 使用 Lucide 圖示庫 -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; color: #1e293b; }
@@ -20,6 +22,9 @@
         .rank-A { background-color: #fee2e2; color: #ef4444; }
         .rank-B { background-color: #dcfce7; color: #16a34a; }
         .rank-C { background-color: #dbeafe; color: #2563eb; }
+
+        /* 管理員驗證 Modal 樣式 */
+        .modal-overlay { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); }
     </style>
 </head>
 <body class="p-4">
@@ -81,12 +86,14 @@
             </div>
 
             <!-- Honor Banner -->
-            <div id="honorBanner" class="hidden space-y-3">
-                <div id="excellenceBox" class="hidden glass-card p-6 border-2 border-amber-200 bg-amber-50/50">
-                    <div id="excellenceMsg"></div>
-                </div>
-                <div id="advantageBox" class="hidden glass-card p-6 border-2 border-indigo-200 bg-indigo-50/50">
-                    <div id="advantageMsg"></div>
+            <div id="honorBanner" class="hidden space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div id="excellenceBox" class="hidden glass-card p-6 border-2 border-amber-200 bg-amber-50/50">
+                        <div id="excellenceMsg"></div>
+                    </div>
+                    <div id="advantageBox" class="hidden glass-card p-6 border-2 border-indigo-200 bg-indigo-50/50">
+                        <div id="advantageMsg"></div>
+                    </div>
                 </div>
                 <div id="potentialBox" class="hidden glass-card p-6 border-2 border-emerald-200 bg-emerald-50/50">
                     <div id="potentialMsg"></div>
@@ -154,11 +161,40 @@
             </div>
         </div>
 
-        <!-- Admin -->
+        <!-- Admin Section -->
         <footer class="mt-12 py-10 flex flex-col items-center">
-            <button onclick="openAdminModal()" class="text-[9px] font-bold text-slate-300 tracking-widest uppercase underline">管理員模式</button>
+            <!-- 原文字改為盾牌圖示 -->
+            <button onclick="toggleAdminAuthModal()" class="text-slate-300 hover:text-blue-500 transition-all active:scale-90" title="管理員登入">
+                <i data-lucide="shield-check" class="w-6 h-6"></i>
+            </button>
+
+            <!-- 第一層驗證：帳號檢查 -->
+            <div id="adminAuthModal" class="hidden fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 space-y-6">
+                    <div class="text-center">
+                        <div class="inline-flex p-3 rounded-full bg-blue-50 text-blue-600 mb-4">
+                            <i data-lucide="lock" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="text-xl font-black text-slate-800">管理員驗證</h3>
+                        <p class="text-xs font-bold text-slate-400 mt-1">請輸入許可的 Google 帳號以解鎖功能</p>
+                    </div>
+                    <div class="space-y-3">
+                        <input type="email" id="adminAccount" placeholder="Google 帳號 (Email)" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 font-bold text-sm outline-none focus:ring-2 focus:ring-blue-500 text-center">
+                        <div class="flex gap-2">
+                            <button onclick="toggleAdminAuthModal()" class="flex-1 bg-slate-100 text-slate-600 font-bold rounded-xl py-3 hover:bg-slate-200 transition-all text-sm">取消</button>
+                            <button onclick="verifyAdminAccount()" class="flex-2 bg-blue-600 text-white font-black rounded-xl py-3 px-6 shadow-lg hover:bg-blue-700 transition-all text-sm tracking-widest">驗證登入</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第二層功能頁面 (原功能不變) -->
             <div id="adminPanel" class="hidden mt-4 w-full bg-slate-900 rounded-2xl p-6 space-y-4">
-                <div class="text-white text-[10px] font-bold opacity-50 uppercase">貼上 Excel 欄位：班級、座號、姓名、生日、身分證末4、國、英、數、社、自、加權、班排、校排</div>
+                <div class="flex justify-between items-center">
+                    <div class="text-white text-[10px] font-bold opacity-50 uppercase tracking-widest">Excel 匯入模式</div>
+                    <button onclick="closeAdminPanel()" class="text-slate-500 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div class="text-white text-[10px] font-bold opacity-30 uppercase">欄位順序：班級、座號、姓名、生日、身分證末4、國、英、數、社、自、加權、班排、校排</div>
                 <textarea id="rawInput" rows="5" class="w-full bg-slate-800 text-white p-3 rounded-lg text-xs font-mono outline-none border border-slate-700" placeholder="從 Excel 複製 13 個欄位貼上..."></textarea>
                 <div class="flex flex-col sm:flex-row gap-2">
                     <input type="text" id="examTitleInput" class="flex-1 bg-slate-800 text-white rounded-lg p-3 text-xs" placeholder="考試標題 (例如: 113-1第一次段考)">
@@ -171,6 +207,12 @@
 
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbyX9rQwndThgxZva9ePiLLScuGb6-L1N9CuMP5MxSWaWSzBMOGxHJaT5E6Ee8JhAzSc/exec"; 
+        
+        const ALLOWED_ADMIN_EMAILS = [
+            "rivaul731208@app.inmjh.kh.edu.tw"
+        
+        ];
+
         let cloudData = [];
         let charts = {};
         let currentReportData = { user: null, exam: null };
@@ -205,7 +247,35 @@
             }
         }
 
-        window.onload = fetchExams;
+        window.onload = () => {
+            fetchExams();
+            lucide.createIcons(); // 初始化圖示
+        };
+
+        // --- 管理員第一層驗證邏輯 ---
+        function toggleAdminAuthModal() {
+            const modal = document.getElementById('adminAuthModal');
+            modal.classList.toggle('hidden');
+            document.getElementById('adminAccount').value = "";
+        }
+
+        function verifyAdminAccount() {
+            const email = document.getElementById('adminAccount').value.trim().toLowerCase();
+            if (!email) return alert("請輸入帳號");
+            
+            if (ALLOWED_ADMIN_EMAILS.map(e => e.toLowerCase()).includes(email)) {
+                toggleAdminAuthModal();
+                document.getElementById('adminPanel').classList.remove('hidden');
+                // 平滑滾動到底部
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            } else {
+                alert("未經授權的帳號，請聯繫系統管理員。");
+            }
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('adminPanel').classList.add('hidden');
+        }
 
         window.searchGrades = () => {
             const exId = document.getElementById('examSelect').value;
@@ -274,13 +344,10 @@
             let isDetailed = false;
 
             if (drilldownRange) {
-                // 細部組距模式
                 isDetailed = true;
                 isDrilledDown = true;
                 document.getElementById('backToMainDist').classList.remove('hidden');
                 
-                // 由小到大：數值大的在右
-                // 例如 90-91.9, 92-93.9, ..., 100
                 for (let i = drilldownRange.min; i < drilldownRange.max && i < 100; i += 2) {
                     ranges.push({ label: `${i}-${(i + 1.9).toFixed(1)}`, min: i, max: i + 1.99 });
                 }
@@ -288,9 +355,7 @@
                     ranges.push({ label: '100', min: 100, max: 100 });
                 }
             } else {
-                // 主組距模式
                 isDetailed = false;
-                // 由小到大：數值大的在右
                 ranges = [
                     { label: '0-19', min: 0, max: 19.9 },
                     { label: '20-29', min: 20, max: 29.9 },
@@ -496,8 +561,6 @@
             document.getElementById('reportView').classList.replace('active-view', 'hidden-view');
             document.getElementById('searchView').classList.replace('hidden-view', 'active-view');
         };
-
-        window.openAdminModal = () => document.getElementById('adminPanel').classList.toggle('hidden');
 
         window.saveToSheets = async () => {
             const token = document.getElementById('adminSecretToken').value;
