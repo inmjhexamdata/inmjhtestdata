@@ -100,33 +100,64 @@
                 </div>
             </div>
 
-            <!-- Grades Table -->
-            <div class="glass-card overflow-hidden">
-                <div class="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                    <h3 class="text-xs font-black text-slate-500 uppercase tracking-wider">成績明細</h3>
-                    <div class="flex items-center gap-4">
-                        <span class="text-[10px] font-bold text-slate-400">加權平均</span>
-                        <div id="weightedAvgDisp" class="text-xl font-black text-blue-600 italic">--</div>
+            <!-- Grades Table and Threshold Table Section -->
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <!-- Grades Table -->
+                <div class="glass-card overflow-hidden xl:col-span-2">
+                    <div class="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                        <h3 class="text-xs font-black text-slate-500 uppercase tracking-wider">成績明細</h3>
+                        <div class="flex items-center gap-4">
+                            <span class="text-[10px] font-bold text-slate-400">加權平均</span>
+                            <div id="weightedAvgDisp" class="text-xl font-black text-blue-600 italic">--</div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 text-[10px] text-slate-400 font-bold uppercase">
+                                <tr>
+                                    <th class="p-3 text-left pl-6">科目</th>
+                                    <th class="p-3 text-center">我的得分</th>
+                                    <th class="p-3 text-center">年級平均</th>
+                                    <th class="p-3 text-center text-blue-600">年級高標</th>
+                                    <th class="p-3 text-center">會考預估</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gradeTableBody">
+                                <!-- JS Inject -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-3 bg-blue-50 text-[10px] text-blue-700 font-medium text-center">
+                        提示：會考等第係根據該年級成績百分比推估；「年級高標」為年級前 50% 同學之平均分數。
                     </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead class="bg-slate-50 text-[10px] text-slate-400 font-bold uppercase">
-                            <tr>
-                                <th class="p-3 text-left pl-6">科目</th>
-                                <th class="p-3 text-center">我的得分</th>
-                                <th class="p-3 text-center">年級平均</th>
-                                <th class="p-3 text-center text-blue-600">年級高標</th>
-                                <th class="p-3 text-center">會考預估</th>
-                            </tr>
-                        </thead>
-                        <tbody id="gradeTableBody">
-                            <!-- JS Inject -->
-                        </tbody>
-                    </table>
-                </div>
-                <div class="p-3 bg-blue-50 text-[10px] text-blue-700 font-medium text-center">
-                    提示：會考等第係根據該年級成績百分比推估；「年級高標」為年級前 50% 同學之平均分數。
+
+                <!-- Threshold Table -->
+                <div class="glass-card overflow-hidden">
+                    <div class="p-4 bg-slate-50 border-b border-slate-100">
+                        <h3 class="text-xs font-black text-slate-500 uppercase tracking-wider text-center">成績百分比對應基準表</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-[11px]">
+                            <thead class="bg-slate-50 text-slate-400 font-bold uppercase">
+                                <tr>
+                                    <th class="p-2 text-left pl-4">科目</th>
+                                    <th class="p-2 text-center text-red-500">A++</th>
+                                    <th class="p-2 text-center text-red-500">A+</th>
+                                    <th class="p-2 text-center text-red-500">A</th>
+                                    <th class="p-2 text-center text-green-600">B++</th>
+                                    <th class="p-2 text-center text-green-600">B+</th>
+                                    <th class="p-2 text-center text-green-600">B</th>
+                                </tr>
+                            </thead>
+                            <tbody id="thresholdTableBody" class="font-bold text-slate-600">
+                                <!-- JS Inject -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-3 bg-slate-50 text-[9px] text-slate-400 font-medium leading-relaxed">
+                        註：此門檻分數係依據本校該年級全體考生之百分比排名計算所得之推估值，僅供學習參考。
+                    </div>
                 </div>
             </div>
 
@@ -163,7 +194,6 @@
 
         <!-- Admin Section -->
         <footer class="mt-12 py-10 flex flex-col items-center">
-            <!-- 原文字改為盾牌圖示 -->
             <button onclick="toggleAdminAuthModal()" class="text-slate-300 hover:text-blue-500 transition-all active:scale-90" title="管理員登入">
                 <i data-lucide="shield-check" class="w-6 h-6"></i>
             </button>
@@ -188,7 +218,7 @@
                 </div>
             </div>
 
-            <!-- 第二層功能頁面 (原功能不變) -->
+            <!-- 第二層功能頁面 -->
             <div id="adminPanel" class="hidden mt-4 w-full bg-slate-900 rounded-2xl p-6 space-y-4">
                 <div class="flex justify-between items-center">
                     <div class="text-white text-[10px] font-bold opacity-50 uppercase tracking-widest">Excel 匯入模式</div>
@@ -206,11 +236,11 @@
     </div>
 
     <script>
+        // 設定 Google App Script 部署網址
         const GAS_URL = "https://script.google.com/macros/s/AKfycbyX9rQwndThgxZva9ePiLLScuGb6-L1N9CuMP5MxSWaWSzBMOGxHJaT5E6Ee8JhAzSc/exec"; 
         
         const ALLOWED_ADMIN_EMAILS = [
             "rivaul731208@apps.inmjh.kh.edu.tw"
-        
         ];
 
         let cloudData = [];
@@ -218,6 +248,7 @@
         let currentReportData = { user: null, exam: null };
         let isDrilledDown = false;
 
+        // 會考落點參考百分比
         const CAP_RULES = {
             "國文": [6.56, 10.38, 13.11, 19.67, 16.94, 24.59, 8.74],
             "英文": [6.56, 4.92, 12.57, 14.75, 15.30, 20.22, 25.68],
@@ -249,10 +280,9 @@
 
         window.onload = () => {
             fetchExams();
-            lucide.createIcons(); // 初始化圖示
+            lucide.createIcons();
         };
 
-        // --- 管理員第一層驗證邏輯 ---
         function toggleAdminAuthModal() {
             const modal = document.getElementById('adminAuthModal');
             modal.classList.toggle('hidden');
@@ -266,7 +296,6 @@
             if (ALLOWED_ADMIN_EMAILS.map(e => e.toLowerCase()).includes(email)) {
                 toggleAdminAuthModal();
                 document.getElementById('adminPanel').classList.remove('hidden');
-                // 平滑滾動到底部
                 window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
             } else {
                 alert("未經授權的帳號，請聯繫系統管理員。");
@@ -322,6 +351,16 @@
                 if (myScore >= thresholdScore) return CAP_LABELS[i];
             }
             return "C";
+        }
+
+        // 新增：計算特定百分比對應的分數門檻
+        function getThresholdScore(allScores, percent) {
+            const sorted = [...allScores].sort((a, b) => b - a);
+            const total = sorted.length;
+            let index = Math.floor(total * (percent / 100)) - 1;
+            if (index < 0) index = 0;
+            if (index >= total) index = total - 1;
+            return sorted[index];
         }
 
         function resetDistributionUI() {
@@ -473,7 +512,19 @@
                 const top50Scores = subScores.slice(0, top50Count);
                 const highBarAvg = top50Scores.reduce((a, b) => a + b, 0) / top50Scores.length;
                 const prediction = predictCAP(name, targetUser.scores[i], subScores);
-                return { avg: avg.toFixed(1), highBar: highBarAvg.toFixed(1), cap: prediction };
+                
+                // 計算各等第的分數門檻
+                const rules = CAP_RULES[name];
+                let thresholds = [];
+                let cumPercent = 0;
+                rules.forEach((p, idx) => {
+                    if (idx < 6) { // 只顯示 A++ 到 B
+                        cumPercent += p;
+                        thresholds.push(getThresholdScore(subScores, cumPercent));
+                    }
+                });
+
+                return { avg: avg.toFixed(1), highBar: highBarAvg.toFixed(1), cap: prediction, thresholds: thresholds };
             });
 
             document.getElementById('displayName').innerText = targetUser.name;
@@ -486,6 +537,7 @@
             
             document.getElementById('weightedAvgDisp').innerText = targetUser.weightedAvg.toFixed(2);
 
+            // 渲染成績明細表
             const tableBody = document.getElementById('gradeTableBody');
             tableBody.innerHTML = targetUser.scores.map((s, i) => {
                 const cap = gradeStats[i].cap;
@@ -503,6 +555,23 @@
                     </td>
                 </tr>
             `}).join('');
+
+            // 渲染等第門檻表
+            const thresholdTableBody = document.getElementById('thresholdTableBody');
+            thresholdTableBody.innerHTML = subs.map((name, i) => {
+                const th = gradeStats[i].thresholds;
+                return `
+                <tr class="border-b border-slate-50">
+                    <td class="p-3 pl-4 font-black text-slate-400 bg-slate-50/30">${name}</td>
+                    <td class="p-3 text-center text-red-500">${th[0]}</td>
+                    <td class="p-3 text-center text-red-400">${th[1]}</td>
+                    <td class="p-3 text-center text-red-300">${th[2]}</td>
+                    <td class="p-3 text-center text-green-600">${th[3]}</td>
+                    <td class="p-3 text-center text-green-500">${th[4]}</td>
+                    <td class="p-3 text-center text-green-400">${th[5]}</td>
+                </tr>
+                `;
+            }).join('');
 
             resetDistributionUI();
 
@@ -530,6 +599,7 @@
                 }
             });
 
+            // 獎章與分析訊息
             document.getElementById('honorBanner').classList.remove('hidden');
             const excellence = subs.filter((name, i) => gradeStats[i].cap.startsWith("A"));
             if (excellence.length) {
@@ -570,6 +640,7 @@
             const btn = document.getElementById('saveBtn');
             btn.disabled = true;
             btn.innerText = "正在同步...";
+            
             let entries = raw.split('\n').map(line => {
                 const p = line.split('\t');
                 if (p.length < 13) return null;
