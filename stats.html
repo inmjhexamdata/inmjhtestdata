@@ -1,0 +1,48 @@
+// 這是針對「查成績用網頁原始碼.html」中 syncData 函式的進階優化版本
+// 目標：自動過濾完全缺考（自學生），且處理部分缺考情況
+
+let entries = raw.split('\n').map(line => {
+    const p = line.split('\t');
+    if (p.length < 13) return null;
+
+    const weights = [5, 3, 4, 3, 3]; // 國, 英, 數, 社, 自 的權重
+    let totalScore = 0;
+    let usedWeight = 0;
+    let hasAnyScore = false;
+
+    // 1. 檢查分數
+    const scores = [5, 6, 7, 8, 9].map((colIndex, i) => {
+        const rawValue = p[colIndex] ? p[colIndex].trim() : "";
+        if (rawValue === "") {
+            return null; // 標記為缺考
+        } else {
+            const score = parseFloat(rawValue);
+            if (!isNaN(score)) {
+                totalScore += score * weights[i];
+                usedWeight += weights[i];
+                hasAnyScore = true;
+                return score;
+            }
+            return null;
+        }
+    });
+
+    // 2. 核心邏輯：如果完全沒有任何一科成績（完全缺考/自學生），直接剔除，不列入資料庫
+    if (!hasAnyScore) return null;
+
+    // 3. 如果有成績（即使只有一科），才計算加權平均並保留資料
+    // 此時分母會根據「有考的科目權重總和」動態調整，確保公平性
+    const avg = totalScore / usedWeight;
+
+    return { 
+        class: p[0].trim(), 
+        seat: p[1].trim(), 
+        name: p[2].trim(), 
+        birthday: p[3].trim(), 
+        idLastFour: p[4].trim(), 
+        scores,           // 包含數字或 null (代表缺考)
+        weightedAvg: avg, 
+        classRank: p[11], 
+        schoolRank: p[12]
+    };
+}).filter(e => e); // 這裡會把所有回傳 null 的 (格式不符或完全缺考者) 全部濾掉
