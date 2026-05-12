@@ -1,48 +1,176 @@
-// 這是針對「查成績用網頁原始碼.html」中 syncData 函式的進階優化版本
-// 目標：自動過濾完全缺考（自學生），且處理部分缺考情況
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英明國中全校成績組距分析系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f1f5f9; }
+        .table-container { background: white; border-radius: 1rem; shadow: 0 4px 20px rgba(0, 0, 0, 0.05); }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        .sticky-header th { position: sticky; top: 0; background: #1e293b; color: white; z-index: 10; padding: 12px 8px; font-size: 13px; }
+        .range-col { background-color: #f1f5f9; font-weight: 900; color: #475569; position: sticky; left: 0; z-index: 5; border-right: 2px solid #e2e8f0; }
+        .grade-btn.active { background-color: #2563eb; color: white; }
+        .grade-btn.inactive { background-color: #e2e8f0; color: #64748b; }
+        td { padding: 10px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+        .count-cell { font-weight: 600; color: #1e293b; }
+        /* 移除原本淡色處理，讓 0 與其他數字顏色一致 */
+        .zero-value { color: #1e293b; font-weight: 600; }
+        .avg-cell { background-color: #eff6ff; font-weight: 800; color: #1d4ed8; }
+        .avg-zero { color: #1d4ed8; font-weight: 800; }
+    </style>
+</head>
+<body class="p-4 md:p-6">
 
-let entries = raw.split('\n').map(line => {
-    const p = line.split('\t');
-    if (p.length < 13) return null;
+    <div class="max-w-[1200px] mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-xl text-white">
+                    <i data-lucide="bar-chart-2"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black text-slate-800 tracking-tight">全校各科成績組距總表</h1>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Grade Distribution Report</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div id="cloudStatus" class="text-[10px] font-black px-3 py-1 rounded-full bg-amber-100 text-amber-700">正在同步雲端資料...</div>
+                <select id="examSelect" onchange="refreshAnalysis()" class="bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">載入中...</option>
+                </select>
+            </div>
+        </header>
 
-    const weights = [5, 3, 4, 3, 3]; // 國, 英, 數, 社, 自 的權重
-    let totalScore = 0;
-    let usedWeight = 0;
-    let hasAnyScore = false;
+        <!-- Grade Selector -->
+        <div class="flex gap-2 mb-6 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 w-fit">
+            <button onclick="setGrade('1')" id="btn-g1" class="grade-btn px-6 py-2 rounded-xl font-bold transition-all inactive">一年級</button>
+            <button onclick="setGrade('2')" id="btn-g2" class="grade-btn px-6 py-2 rounded-xl font-bold transition-all inactive">二年級</button>
+            <button onclick="setGrade('3')" id="btn-g3" class="grade-btn px-6 py-2 rounded-xl font-bold transition-all active">三年級</button>
+        </div>
 
-    // 1. 檢查分數
-    const scores = [5, 6, 7, 8, 9].map((colIndex, i) => {
-        const rawValue = p[colIndex] ? p[colIndex].trim() : "";
-        if (rawValue === "") {
-            return null; // 標記為缺考
-        } else {
-            const score = parseFloat(rawValue);
-            if (!isNaN(score)) {
-                totalScore += score * weights[i];
-                usedWeight += weights[i];
-                hasAnyScore = true;
-                return score;
+        <!-- Main Analysis Table -->
+        <div class="table-container overflow-hidden border border-slate-200">
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                <div class="text-xs font-black text-slate-500 flex items-center gap-2">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                    有效樣本統計
+                </div>
+                <div id="totalSampleCount" class="text-xs font-bold text-blue-600 italic">有效樣本: -- 人</div>
+            </div>
+            <div class="overflow-x-auto overflow-y-auto max-h-[75vh]">
+                <table class="w-full border-collapse">
+                    <thead class="sticky-header text-center">
+                        <tr>
+                            <th class="range-col !bg-slate-800 !text-white text-left pl-6 w-32">分數區間</th>
+                            <th>國文</th>
+                            <th>英文</th>
+                            <th>數學</th>
+                            <th>社會</th>
+                            <th>自然</th>
+                            <th class="!bg-blue-700">加權平均</th>
+                        </tr>
+                    </thead>
+                    <tbody id="distTableBody">
+                        <!-- JS Inject -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer class="mt-6 flex justify-end items-center px-2">
+            <div class="flex gap-4 text-[10px] font-bold text-slate-400">
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> 60分以上: 2分一級</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-400"></span> 60分以下: 10分一級</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbyX9rQwndThgxZva9ePiLLScuGb6-L1N9CuMP5MxSWaWSzBMOGxHJaT5E6Ee8JhAzSc/exec"; 
+        let cloudData = [];
+        let currentGrade = '3';
+
+        async function init() {
+            lucide.createIcons();
+            try {
+                const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'read' }) });
+                const result = await response.json();
+                if (result.result === 'success') {
+                    cloudData = result.data;
+                    const select = document.getElementById('examSelect');
+                    if (cloudData.length > 0) {
+                        select.innerHTML = cloudData.map(ex => `<option value="${ex.id}">${ex.id}</option>`).join('');
+                        document.getElementById('cloudStatus').innerText = '同步成功';
+                        document.getElementById('cloudStatus').className = 'text-[10px] font-black px-3 py-1 rounded-full bg-emerald-100 text-emerald-700';
+                        refreshAnalysis();
+                    }
+                }
+            } catch (e) {
+                document.getElementById('cloudStatus').innerText = '連線失敗';
             }
-            return null;
         }
-    });
 
-    // 2. 核心邏輯：如果完全沒有任何一科成績（完全缺考/自學生），直接剔除，不列入資料庫
-    if (!hasAnyScore) return null;
+        function setGrade(g) {
+            currentGrade = g;
+            document.querySelectorAll('.grade-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('inactive');
+            });
+            document.getElementById(`btn-g${g}`).classList.replace('inactive', 'active');
+            refreshAnalysis();
+        }
 
-    // 3. 如果有成績（即使只有一科），才計算加權平均並保留資料
-    // 此時分母會根據「有考的科目權重總和」動態調整，確保公平性
-    const avg = totalScore / usedWeight;
+        function refreshAnalysis() {
+            const exId = document.getElementById('examSelect').value;
+            if (!exId || !cloudData.length) return;
 
-    return { 
-        class: p[0].trim(), 
-        seat: p[1].trim(), 
-        name: p[2].trim(), 
-        birthday: p[3].trim(), 
-        idLastFour: p[4].trim(), 
-        scores,           // 包含數字或 null (代表缺考)
-        weightedAvg: avg, 
-        classRank: p[11], 
-        schoolRank: p[12]
-    };
-}).filter(e => e); // 這裡會把所有回傳 null 的 (格式不符或完全缺考者) 全部濾掉
+            const exam = cloudData.find(ex => ex.id === exId);
+            const activeStudents = exam.entries.filter(e => {
+                return e.class.startsWith(currentGrade) && e.scores.some(s => s > 0);
+            });
+
+            document.getElementById('totalSampleCount').innerText = `有效樣本: ${activeStudents.length} 人`;
+            
+            const subjectData = [0, 1, 2, 3, 4].map(idx => activeStudents.map(e => e.scores[idx]));
+            const avgData = activeStudents.map(e => e.weightedAvg);
+
+            renderTable(subjectData, avgData);
+        }
+
+        function renderTable(subjects, avgs) {
+            const tbody = document.getElementById('distTableBody');
+            tbody.innerHTML = "";
+
+            let bins = [{ label: "100", min: 100, max: 100 }];
+            for (let i = 98; i >= 60; i -= 2) {
+                bins.push({ label: `${i} ~ ${(i + 1.9).toFixed(1)}`, min: i, max: i + 1.999 });
+            }
+            for (let i = 50; i >= 0; i -= 10) {
+                bins.push({ label: `${i} ~ ${(i + 9.9).toFixed(1)}`, min: i, max: i + 9.999 });
+            }
+
+            bins.forEach(bin => {
+                const tr = document.createElement('tr');
+                let html = `<td class="range-col pl-6 text-left">${bin.label}</td>`;
+                
+                subjects.forEach((scores) => {
+                    const count = scores.filter(s => s >= bin.min && s <= bin.max).length;
+                    html += `<td class="count-cell ${count === 0 ? 'zero-value' : ''}">${count}</td>`;
+                });
+
+                const avgCount = avgs.filter(s => s >= bin.min && s <= bin.max).length;
+                html += `<td class="avg-cell ${avgCount === 0 ? 'avg-zero' : ''}">${avgCount}</td>`;
+
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
