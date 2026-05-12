@@ -181,6 +181,7 @@
                                 <option value="2">數學</option>
                                 <option value="3">社會</option>
                                 <option value="4">自然</option>
+                                <option value="5">加權平均</option>
                             </select>
                         </div>
                         <div class="bar-box">
@@ -372,11 +373,24 @@
             const { user, exam } = currentReportData;
             if (!user || !exam) return;
             const subIdx = parseInt(document.getElementById('distSubjectSelect').value);
-            const myScore = user.scores[subIdx];
-            const gradePrefix = user.class.substring(0, 1);
-            const allScores = exam.entries
-                .filter(e => e.class.startsWith(gradePrefix))
-                .map(e => e.scores[subIdx]);
+ const gradePrefix = user.class.substring(0, 1);
+
+let myScore;
+let allScores;
+
+// 判斷是否為「加權平均」選項 (value 為 5)
+if (subIdx === 5) {
+    myScore = user.weightedAvg; 
+    allScores = exam.entries
+        .filter(e => e.class.startsWith(gradePrefix))
+        .map(e => e.weightedAvg);
+} else {
+    // 原本的五個學科邏輯
+    myScore = user.scores[subIdx];
+    allScores = exam.entries
+        .filter(e => e.class.startsWith(gradePrefix))
+        .map(e => e.scores[subIdx]);
+}
 
             let ranges = [];
             let isDetailed = false;
