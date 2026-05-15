@@ -382,13 +382,13 @@ let allScores;
 if (subIdx === 5) {
     myScore = user.weightedAvg; 
     allScores = exam.entries
-        .filter(e => e.class.startsWith(gradePrefix))
+        .filter(e => e.class.startsWith(gradePrefix) && e.scores.some(s => s > 0))
         .map(e => e.weightedAvg);
 } else {
     // 原本的五個學科邏輯
     myScore = user.scores[subIdx];
     allScores = exam.entries
-        .filter(e => e.class.startsWith(gradePrefix))
+        .filter(e => e.class.startsWith(gradePrefix) && e.scores.some(s => s > 0))
         .map(e => e.scores[subIdx]);
 }
 
@@ -509,8 +509,8 @@ if (subIdx === 5) {
             const subs = ["國文", "英文", "數學", "社會", "自然"];
             const gradePrefix = targetUser.class.substring(0, 1);
             
-            const gradeEntries = exam.entries.filter(e => e.class.startsWith(gradePrefix));
-            const classEntries = exam.entries.filter(e => e.class === targetUser.class);
+            const gradeEntries = exam.entries.filter(e => e.class.startsWith(gradePrefix) && e.scores.some(s => s > 0));
+            const classEntries = exam.entries.filter(e => e.class === targetUser.class && e.scores.some(s => s > 0));
 
             const allGradeAvgs = gradeEntries.map(e => e.weightedAvg);
             const allClassAvgs = classEntries.map(e => e.weightedAvg);
